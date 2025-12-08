@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="description" content="THE FEED: Appetite with a login.">
+    <meta name="theme-color" content="#000000">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'self';">
+    
+    <title>THE FEED</title>
+    
+    <style>
+        /* RESET & BASE */
+        :root {
+            --bg-color: #000;
+            --text-color: #fff;
+            --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-stack);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            /* Fallback for browsers not supporting dvh */
+            min-height: 100dvh; 
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* LAYERS & FX */
+        .layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            user-select: none;
+            aria-hidden: "true";
+        }
+
+        .flare {
+            position: absolute; /* Kept absolute to scroll with flow if intended, or fixed for background */
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(192, 192, 192, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(ellipse at 50% 50%, rgba(169, 169, 169, 0.12) 0%, transparent 60%);
+            animation: flareShift 7s ease-in-out infinite;
+            z-index: 0;
+            /* Performance: Promote to GPU layer */
+            will-change: transform, opacity;
+            transform: translateZ(0);
+        }
+
+        .grain {
+            z-index: 999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+            opacity: 0.5; /* Integrated opacity directly from inline style */
+            mix-blend-mode: overlay; /* Better blending */
+        }
+
+        /* LAYOUT */
+        .container {
+            position: relative;
+            z-index: 1;
+            padding: 8vh 6vw;
+            max-width: 1400px;
+            margin-inline: auto;
+            width: 100%;
+        }
+
+        /* TYPOGRAPHY */
+        h1 {
+            font-size: clamp(3rem, 12vw, 9rem);
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            line-height: 0.85;
+            margin-bottom: 4vh;
+            word-spacing: -0.3em;
+        }
+
+        p {
+            font-size: clamp(1.1rem, 2.5vw, 2rem);
+            line-height: 1.4;
+            font-weight: 300;
+            letter-spacing: -0.01em;
+            max-width: 800px;
+        }
+
+        .section {
+            margin: 6vh 0;
+            padding-left: 0;
+        }
+
+        /* Responsive offsets */
+        .section:nth-child(even) {
+            padding-left: 15vw;
+        }
+
+        .section:nth-child(3) {
+            padding-left: 8vw;
+        }
+
+        .close {
+            margin-top: 12vh;
+            padding-left: 0;
+            font-size: clamp(1.3rem, 3vw, 2.5rem);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        /* Mobile Layout Protections */
+        @media (max-width: 768px) {
+            .section:nth-child(even),
+            .section:nth-child(3) {
+                padding-left: 5vw; /* Tighter padding for mobile readability */
+            }
+        }
+
+        /* MODIFIERS */
+        .heavy {
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .broken {
+            font-weight: 100;
+            letter-spacing: 0.15em;
+            opacity: 0.7;
+        }
+
+        .metallic {
+            background: linear-gradient(135deg, #fff 0%, #c0c0c0 50%, #808080 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: #c0c0c0; /* Fallback */
+            display: inline-block; /* Fix for rendering glitches on some browsers */
+        }
+
+        /* ANIMATIONS */
+        .glitch {
+            animation: glitch 3s infinite;
+            will-change: transform;
+        }
+
+        .stutter {
+            display: inline-block;
+            animation: stutter 4s infinite;
+            will-change: opacity;
+        }
+
+        .pulse {
+            animation: pulse 2.5s ease-in-out infinite;
+            will-change: transform, opacity;
+        }
+
+        .flicker {
+            animation: flicker 5s infinite;
+            will-change: opacity;
+        }
+
+        /* KEYFRAMES */
+        @keyframes flareShift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.6; }
+            33% { transform: translate(-5%, 8%) rotate(2deg); opacity: 0.8; }
+            66% { transform: translate(3%, -6%) rotate(-1deg); opacity: 0.4; }
+        }
+
+        @keyframes glitch {
+            0%, 90%, 100% { transform: translate(0); }
+            91% { transform: translate(-2px, 1px); }
+            92% { transform: translate(2px, -1px); }
+            93% { transform: translate(0); }
+        }
+
+        @keyframes stutter {
+            0%, 100% { opacity: 1; }
+            45%, 55% { opacity: 0.3; }
+            46%, 54% { opacity: 1; }
+            47%, 53% { opacity: 0.5; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.98); }
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            41%, 43% { opacity: 0.4; }
+            42% { opacity: 1; }
+            78%, 80% { opacity: 0.6; }
+            79% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="flare" aria-hidden="true"></div>
+    <div class="layer grain" aria-hidden="true"></div>
+    
+    <main class="container">
+        <h1 class="glitch">
+            THE <span class="metallic">FEED</span>
+        </h1>
+
+        <section class="section">
+            <p class="flicker">
+                you look. <span class="heavy">it looks back.</span><br>
+                now you can't stop.
+            </p>
+        </section>
+
+        <section class="section">
+            <p>
+                this isn't <span class="broken">b r a n d</span>.<br>
+                it's <span class="heavy">appetite</span> with a login.<br>
+                <span class="stutter metallic">dopamine</span> dressed like design.
+            </p>
+        </section>
+
+        <section class="section">
+            <p class="pulse">
+                scroll. click. <span class="heavy">repeat</span>.<br>
+                you think you're choosing.<br>
+                <span class="broken">you're not.</span>
+            </p>
+        </section>
+
+        <section class="section">
+            <p>
+                <span class="heavy">light.</span> sound. <span class="heavy">touch.</span><br>
+                all hacked for impulse.<br>
+                <span class="metallic flicker">every pixel optimized</span><br>
+                to keep your thumb moving.
+            </p>
+        </section>
+
+        <section class="close">
+            <p class="glitch">
+                the only rule—<br>
+                <span class="metallic heavy">keep them craving.</span>
+            </p>
+        </section>
+    </main>
+</body>
+</html>
