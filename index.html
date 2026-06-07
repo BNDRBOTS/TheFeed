@@ -2,264 +2,584 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <meta name="description" content="THE FEED: Appetite with a login.">
     <meta name="theme-color" content="#000000">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'none'; object-src 'none'; base-uri 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';">
     
     <title>THE FEED</title>
     
     <style>
-        /* RESET & BASE */
+        /* * BLEEDING EDGE ARCHITECTURE 
+         * Zero Bloat. Maximum Sensory Impact.
+         */
         :root {
-            --bg-color: #000;
-            --text-color: #fff;
-            --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --bg-color: #030303; 
+            --text-color: #f4f4f5;
+            --font-stack: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --mouse-x: 0;
+            --mouse-y: 0;
+            --scroll-v: 0deg; 
+            
+            /* Chaos Engine Variables */
+            --shiver-x: 0px;
+            --shiver-y: 0px;
+            --rgb-split: 0;
+            --flicker: 1;
+            --interference: 0;
+            --depth-red: 0; /* Shifts to blood-red as you scroll deeper */
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            cursor: crosshair; 
         }
 
-        html {
-            -webkit-text-size-adjust: 100%;
-        }
-
-        body {
+        html, body {
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: var(--font-stack);
             overflow-x: hidden;
-            position: relative;
-            min-height: 100vh;
-            /* Fallback for browsers not supporting dvh */
-            min-height: 100dvh; 
-            text-rendering: optimizeLegibility;
+            width: 100%;
+            min-height: 100dvh;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            overscroll-behavior: none; 
+            selection-background: rgba(255, 0, 0, 0.9);
+            selection-color: #fff;
+            opacity: var(--flicker); 
         }
 
-        /* LAYERS & FX */
+        ::selection {
+            background: #fff;
+            color: #000;
+            text-shadow: none;
+        }
+
+        /* * THE VOID LAYERS
+         */
         .layer {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
+            width: 100vw;
+            height: 100vh; 
+            height: 100dvh;
             pointer-events: none;
             user-select: none;
-            aria-hidden: "true";
+        }
+
+        .vignette {
+            z-index: 10;
+            /* Gradient darkens and shifts red based on scroll depth */
+            background: radial-gradient(circle at center, transparent 20%, rgba(calc(3 + var(--depth-red)), 3, 3, 1) 130%);
+            mix-blend-mode: multiply;
         }
 
         .flare {
-            position: absolute; /* Kept absolute to scroll with flow if intended, or fixed for background */
+            position: fixed;
             top: -50%;
             left: -50%;
             width: 200%;
             height: 200%;
             background: 
-                radial-gradient(ellipse at 20% 30%, rgba(192, 192, 192, 0.15) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 40%),
-                radial-gradient(ellipse at 50% 50%, rgba(169, 169, 169, 0.12) 0%, transparent 60%);
-            animation: flareShift 7s ease-in-out infinite;
+                radial-gradient(circle at 50% 50%, rgba(200, 200, 200, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
             z-index: 0;
-            /* Performance: Promote to GPU layer */
-            will-change: transform, opacity;
-            transform: translateZ(0);
+            transform: translate(calc(var(--mouse-x) * 15vw), calc(var(--mouse-y) * 15vh)) translateZ(0);
+            will-change: transform;
+            transition: transform 0.1s cubic-bezier(0.1, 0.5, 0.1, 1); 
         }
 
         .grain {
             z-index: 999;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
-            opacity: 0.5; /* Integrated opacity directly from inline style */
-            mix-blend-mode: overlay; /* Better blending */
-        }
-
-        /* LAYOUT */
-        .container {
-            position: relative;
-            z-index: 1;
-            padding: 8vh 6vw;
-            max-width: 1400px;
-            margin-inline: auto;
-            width: 100%;
-        }
-
-        /* TYPOGRAPHY */
-        h1 {
-            font-size: clamp(3rem, 12vw, 9rem);
-            font-weight: 900;
-            letter-spacing: -0.05em;
-            line-height: 0.85;
-            margin-bottom: 4vh;
-            word-spacing: -0.3em;
-        }
-
-        p {
-            font-size: clamp(1.1rem, 2.5vw, 2rem);
-            line-height: 1.4;
-            font-weight: 300;
-            letter-spacing: -0.01em;
-            max-width: 800px;
-        }
-
-        .section {
-            margin: 6vh 0;
-            padding-left: 0;
-        }
-
-        /* Responsive offsets */
-        .section:nth-child(even) {
-            padding-left: 15vw;
-        }
-
-        .section:nth-child(3) {
-            padding-left: 8vw;
-        }
-
-        .close {
-            margin-top: 12vh;
-            padding-left: 0;
-            font-size: clamp(1.3rem, 3vw, 2.5rem);
-            font-weight: 600;
-            letter-spacing: -0.02em;
-        }
-
-        /* Mobile Layout Protections */
-        @media (max-width: 768px) {
-            .section:nth-child(even),
-            .section:nth-child(3) {
-                padding-left: 5vw; /* Tighter padding for mobile readability */
-            }
-        }
-
-        /* MODIFIERS */
-        .heavy {
-            font-weight: 700;
-            letter-spacing: 0.02em;
-        }
-
-        .broken {
-            font-weight: 100;
-            letter-spacing: 0.15em;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='0.06'/%3E%3C/svg%3E");
+            mix-blend-mode: color-dodge;
             opacity: 0.7;
         }
 
+        /* * CRT ANATOMY
+         */
+        .scanlines {
+            z-index: 997;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15));
+            background-size: 100% 4px;
+            mix-blend-mode: multiply;
+        }
+
+        .interference {
+            z-index: 998;
+            background: #fff;
+            mix-blend-mode: difference;
+            opacity: var(--interference);
+            will-change: opacity;
+        }
+
+        .roll-line {
+            z-index: 996;
+            background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.08), transparent);
+            height: 15vh;
+            animation: sync-loss-roll 8s linear infinite;
+        }
+
+        /* * SPATIAL TYPOGRAPHY & LAYOUT - GROUNDED & STRUCTURED
+         */
+        .container {
+            position: relative;
+            z-index: 5;
+            /* Mobile First Padding & Rhythm */
+            padding: 8vh 6vw 15vh;
+            max-width: 1200px;
+            margin-inline: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15vh; /* Tighter, grounded pacing */
+            
+            transform: translate(var(--shiver-x), var(--shiver-y));
+            text-shadow: 
+                calc(var(--rgb-split) * 1px) 0 0 rgba(255, 0, 0, 0.6),
+                calc(var(--rgb-split) * -1px) 0 0 rgba(0, 255, 255, 0.6);
+            will-change: transform, text-shadow;
+        }
+
+        .section {
+            opacity: 0;
+            transform: translateY(4vh) skewY(0deg);
+            transition: opacity 1.2s cubic-bezier(0.2, 1, 0.2, 1), transform 1.2s cubic-bezier(0.2, 1, 0.2, 1);
+            will-change: opacity, transform;
+            transform-origin: center left;
+            width: 100%;
+            max-width: 800px; /* Locks text blocks from sprawling */
+        }
+
+        .section.in-view {
+            opacity: 1;
+            transform: translateY(0) skewY(var(--scroll-v)); 
+        }
+
+        /* Mobile First: Anchored left with a subtle, unnerving spine */
+        .section:nth-child(even) { margin-left: 6vw; }
+        .section:nth-child(odd) { margin-left: 0; }
+
+        /* Desktop: A calculated, algorithmic staircase descent */
+        @media (min-width: 768px) {
+            .container { padding: 15vh 6vw 25vh; gap: 20vh; }
+            .section:nth-child(1) { margin-left: 0; }
+            .section:nth-child(2) { margin-left: 8vw; }
+            .section:nth-child(3) { margin-left: 16vw; }
+            .section:nth-child(4) { margin-left: 10vw; }
+            .section:nth-child(5) { margin-left: 20vw; }
+            .section:nth-child(6) { margin-left: 12vw; }
+            .section:nth-child(7) { margin-left: 24vw; }
+            .section:nth-child(8) { margin-left: 8vw; }
+            .section:nth-child(9) { margin-left: 18vw; }
+        }
+
+        h1 {
+            font-size: clamp(3.5rem, 12vw, 10rem);
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            line-height: 0.85;
+            margin-bottom: 2vh;
+            text-transform: uppercase;
+        }
+
+        p {
+            font-size: clamp(1.15rem, 3vw, 2.25rem);
+            line-height: 1.35;
+            font-weight: 300;
+            letter-spacing: -0.02em;
+        }
+
+        .close {
+            margin-top: 15vh;
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            display: flex;
+            flex-direction: column;
+            gap: 5vh;
+            /* Ground the final trap to the left axis instead of floating center */
+            align-items: flex-start; 
+            text-align: left !important;
+        }
+
+        /* * TEXTURES & MODIFIERS
+         */
+        .heavy {
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            color: #fff;
+        }
+
+        .broken {
+            font-weight: 200;
+            letter-spacing: 0.2em;
+            opacity: 0.6;
+            text-transform: lowercase;
+        }
+
         .metallic {
-            background: linear-gradient(135deg, #fff 0%, #c0c0c0 50%, #808080 100%);
+            background: linear-gradient(110deg, #555 0%, #fff 40%, #fff 60%, #555 100%);
+            background-size: 200% auto;
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            color: #c0c0c0; /* Fallback */
-            display: inline-block; /* Fix for rendering glitches on some browsers */
+            color: #fff;
+            animation: metalShine 6s linear infinite;
         }
 
-        /* ANIMATIONS */
-        .glitch {
-            animation: glitch 3s infinite;
-            will-change: transform;
-        }
-
-        .stutter {
+        /* * THE CIPHER TARGET
+         */
+        .cipher {
             display: inline-block;
-            animation: stutter 4s infinite;
-            will-change: opacity;
+            font-family: monospace; /* Monospace gives it that raw data feel when scrambling */
+            font-weight: 700;
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+            padding: 0 0.2em;
+            transition: color 0.3s ease;
+        }
+        
+        .cipher.scrambling {
+            color: #ff3333; /* Shifts red during mutation */
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
         }
 
-        .pulse {
-            animation: pulse 2.5s ease-in-out infinite;
-            will-change: transform, opacity;
+        /* * THE HOOK (INTERACTION)
+         */
+        .auth-trap {
+            appearance: none;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 1.5rem 4rem;
+            font-family: inherit;
+            font-size: clamp(1rem, 1.5vw, 1.25rem);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
-        .flicker {
-            animation: flicker 5s infinite;
-            will-change: opacity;
+        .auth-trap::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff;
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.4s cubic-bezier(0.7, 0, 0.2, 1);
+            z-index: -1;
         }
 
-        /* KEYFRAMES */
-        @keyframes flareShift {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: 0.6; }
-            33% { transform: translate(-5%, 8%) rotate(2deg); opacity: 0.8; }
-            66% { transform: translate(3%, -6%) rotate(-1deg); opacity: 0.4; }
+        .auth-trap:hover {
+            color: #000;
+            border-color: #fff;
+            letter-spacing: 0.2em;
         }
 
-        @keyframes glitch {
-            0%, 90%, 100% { transform: translate(0); }
-            91% { transform: translate(-2px, 1px); }
-            92% { transform: translate(2px, -1px); }
-            93% { transform: translate(0); }
+        .auth-trap:hover::before {
+            transform: scaleX(1);
+            transform-origin: left;
         }
 
-        @keyframes stutter {
-            0%, 100% { opacity: 1; }
-            45%, 55% { opacity: 0.3; }
-            46%, 54% { opacity: 1; }
-            47%, 53% { opacity: 0.5; }
+        /* * BLEEDING EDGE ANIMATIONS 
+         */
+        @keyframes metalShine { to { background-position: 200% center; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; text-shadow: 0 0 0px rgba(255,255,255,0); } 50% { opacity: 0.7; text-shadow: 0 0 20px rgba(255,255,255,0.2); } }
+        @keyframes sync-loss-roll { 0% { transform: translateY(-15vh); } 100% { transform: translateY(115vh); } }
+
+        .pulse { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+        .glitch-text {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%; opacity: 0.8;
+        }
+        
+        .glitch-text::before {
+            left: 2px; text-shadow: -2px 0 rgba(255,0,0,0.4);
+            clip-path: polygon(0 20%, 100% 20%, 100% 21%, 0 21%);
+            animation: glitch-anim-1 2.5s infinite linear alternate-reverse;
+        }
+        
+        .glitch-text::after {
+            left: -2px; text-shadow: -2px 0 rgba(0,255,255,0.4);
+            clip-path: polygon(0 60%, 100% 60%, 100% 61%, 0 61%);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(0.98); }
+        @keyframes glitch-anim-1 {
+            0% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); }
+            20% { clip-path: polygon(0 15%, 100% 15%, 100% 15%, 0 15%); }
+            40% { clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%); }
+            60% { clip-path: polygon(0 85%, 100% 85%, 100% 86%, 0 86%); }
+            80% { clip-path: polygon(0 45%, 100% 45%, 100% 50%, 0 50%); }
+            100% { clip-path: polygon(0 70%, 100% 70%, 100% 71%, 0 71%); }
         }
 
-        @keyframes flicker {
-            0%, 100% { opacity: 1; }
-            41%, 43% { opacity: 0.4; }
-            42% { opacity: 1; }
-            78%, 80% { opacity: 0.6; }
-            79% { opacity: 1; }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: polygon(0 25%, 100% 25%, 100% 30%, 0 30%); }
+            20% { clip-path: polygon(0 5%, 100% 5%, 100% 5%, 0 5%); }
+            40% { clip-path: polygon(0 60%, 100% 60%, 100% 65%, 0 65%); }
+            60% { clip-path: polygon(0 15%, 100% 15%, 100% 16%, 0 16%); }
+            80% { clip-path: polygon(0 75%, 100% 75%, 100% 80%, 0 80%); }
+            100% { clip-path: polygon(0 30%, 100% 30%, 100% 31%, 0 31%); }
+        }
+
+        /* * MOBILE ADAPTATION 
+         */
+        @media (max-width: 768px) {
+            /* Layout is natively mobile-first now; only interactive overrides belong here */
+            .auth-trap { width: 100%; text-align: center; padding: 1.25rem; }
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
         }
     </style>
 </head>
 <body>
-    <div class="flare" aria-hidden="true"></div>
+    <div class="layer flare" aria-hidden="true"></div>
+    <div class="layer vignette" aria-hidden="true"></div>
+    <div class="layer scanlines" aria-hidden="true"></div>
+    <div class="layer roll-line" aria-hidden="true"></div>
+    <div class="layer interference" aria-hidden="true"></div>
     <div class="layer grain" aria-hidden="true"></div>
     
     <main class="container">
-        <h1 class="glitch">
-            THE <span class="metallic">FEED</span>
-        </h1>
-
+        <!-- Layer 1 -->
         <section class="section">
-            <p class="flicker">
+            <h1 class="glitch-text" data-text="THE FEED">
+                THE <span class="metallic">FEED</span>
+            </h1>
+        </section>
+
+        <!-- Layer 2 -->
+        <section class="section">
+            <p>
                 you look. <span class="heavy">it looks back.</span><br>
-                now you can't stop.
+                now you can't <span class="cipher" data-words="escape,breathe,stop">stop</span>.
             </p>
         </section>
 
+        <!-- Layer 3 -->
         <section class="section">
             <p>
                 this isn't <span class="broken">b r a n d</span>.<br>
-                it's <span class="heavy">appetite</span> with a login.<br>
-                <span class="stutter metallic">dopamine</span> dressed like design.
+                it's <span class="heavy glitch-text" data-text="appetite">appetite</span> with a login.<br>
+                <span class="cipher metallic" data-words="control,surveillance,dopamine">dopamine</span> dressed like design.
             </p>
         </section>
 
+        <!-- Layer 4 -->
         <section class="section">
             <p class="pulse">
                 scroll. click. <span class="heavy">repeat</span>.<br>
-                you think you're choosing.<br>
+                you think you're <span class="cipher" data-words="trapped,predictable,choosing">choosing</span>.<br>
                 <span class="broken">you're not.</span>
             </p>
         </section>
 
+        <!-- Layer 5 -->
         <section class="section">
             <p>
                 <span class="heavy">light.</span> sound. <span class="heavy">touch.</span><br>
-                all hacked for impulse.<br>
-                <span class="metallic flicker">every pixel optimized</span><br>
+                all hacked for <span class="cipher" data-words="data,profit,impulse">impulse</span>.<br>
+                <span class="metallic">every detail designed</span><br>
                 to keep your thumb moving.
             </p>
         </section>
 
-        <section class="close">
-            <p class="glitch">
-                the only rule—<br>
-                <span class="metallic heavy">keep them craving.</span>
+        <!-- Layer 6 : THE DECENT BEGINS -->
+        <section class="section">
+            <p>
+                we map your <span class="cipher heavy" data-words="weakness,fears,desires">desires</span>.<br>
+                a psychological <span class="broken">wiretap</span><br>
+                disguised as <span class="cipher" data-words="isolation,addiction,community">community</span>.
             </p>
         </section>
+
+        <!-- Layer 7 -->
+        <section class="section">
+            <p>
+                there is no bottom.<br>
+                the <span class="cipher metallic" data-words="parasite,machine,algorithm">algorithm</span> is hungry.<br>
+                feed it your <span class="heavy">attention.</span>
+            </p>
+        </section>
+
+        <!-- Layer 8 -->
+        <section class="section">
+            <p class="pulse">
+                you are not the user.<br>
+                you are the <span class="cipher heavy" data-words="product,target,harvest">harvest</span>.
+            </p>
+        </section>
+
+        <!-- Layer 9 : THE TRAP -->
+        <section class="section close">
+            <p>
+                the only rule—<br>
+                <span class="metallic heavy">keep them <span class="cipher" data-words="docile,blind,craving">craving</span>.</span>
+            </p>
+            
+            <button class="auth-trap" onclick="this.textContent = 'A C C E S S   G R A N T E D'; this.style.pointerEvents = 'none'; this.style.color = '#000'; this.style.background = '#ff3333'; this.style.borderColor = '#ff3333';">
+                [ Initialize Login ]
+            </button>
+        </section>
     </main>
+
+    <script>
+        /**
+         * PSYCHO-KINETIC ENGINE + CRYPTOGRAPHIC CIPHER
+         * Zero dependencies. Hardware Accelerated. Fully hostile.
+         */
+        const root = document.documentElement;
+        
+        // 1. MAGNETIC POINTER TRACKING
+        let mouseX = 0, mouseY = 0;
+        let currentX = 0, currentY = 0;
+        const ease = 0.08; 
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+        });
+
+        // 2. CRYPTOGRAPHIC CIPHER ENGINE (Word Flipping)
+        const cipherChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?";
+        const cipherElements = document.querySelectorAll('.cipher');
+        
+        class CipherNode {
+            constructor(el) {
+                this.el = el;
+                this.words = [el.innerText, ...el.getAttribute('data-words').split(',')];
+                this.currentIndex = 0;
+                this.isAnimating = false;
+            }
+
+            scramble() {
+                if (this.isAnimating) return;
+                this.isAnimating = true;
+                this.el.classList.add('scrambling');
+                
+                // Pick next word
+                this.currentIndex = (this.currentIndex + 1) % this.words.length;
+                const targetWord = this.words[this.currentIndex];
+                
+                let iteration = 0;
+                const maxIterations = 25; // How many frames the scramble lasts
+                
+                const interval = setInterval(() => {
+                    this.el.innerText = targetWord
+                        .split("")
+                        .map((letter, index) => {
+                            if(index < iteration / (maxIterations / targetWord.length)) {
+                                return targetWord[index]; // Lock in correct letter
+                            }
+                            // Return random hostile character
+                            return cipherChars[Math.floor(Math.random() * cipherChars.length)];
+                        })
+                        .join("");
+                    
+                    if(iteration >= maxIterations){
+                        clearInterval(interval);
+                        this.el.innerText = targetWord;
+                        this.el.classList.remove('scrambling');
+                        this.isAnimating = false;
+                    }
+                    
+                    iteration++;
+                }, 30); // Speed of the character cycle
+            }
+        }
+
+        // Initialize all nodes
+        const nodes = Array.from(cipherElements).map(el => new CipherNode(el));
+
+        // 3. SCROLL VELOCITY & CHAOS LOOP
+        let lastScrollY = window.scrollY;
+        let scrollVelocity = 0;
+        let smoothedVelocity = 0;
+        let glitchIntensity = 0; 
+        
+        function renderLoop() {
+            // Pointer mapping
+            currentX += (mouseX - currentX) * ease;
+            currentY += (mouseY - currentY) * ease;
+            root.style.setProperty('--mouse-x', currentX.toFixed(3));
+            root.style.setProperty('--mouse-y', currentY.toFixed(3));
+
+            // Physics-based scroll tension & depth tracking
+            const currentScroll = window.scrollY;
+            scrollVelocity = currentScroll - lastScrollY;
+            lastScrollY = currentScroll;
+            smoothedVelocity += (scrollVelocity - smoothedVelocity) * 0.15;
+            
+            // Calculate depth percentage for environmental shifts (gets redder as you scroll)
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            const scrollDepth = Math.min(1, Math.max(0, currentScroll / maxScroll));
+            root.style.setProperty('--depth-red', (scrollDepth * 40).toFixed(0)); // Shifts from 0 to 40 red channel
+
+            const skewDeg = Math.max(-3, Math.min(3, smoothedVelocity * 0.05));
+            root.style.setProperty('--scroll-v', `${skewDeg.toFixed(2)}deg`);
+
+            // Chaos Engine (Active TV Death + Cipher Triggers)
+            if (Math.random() < 0.03) { 
+                glitchIntensity = Math.random() * 2.5; 
+                // Violent glitch? Trigger a random cipher to scramble
+                if(nodes.length && Math.random() > 0.5) {
+                    nodes[Math.floor(Math.random() * nodes.length)].scramble();
+                }
+            } else if (Math.random() < 0.12) {
+                glitchIntensity += 0.3; 
+            } else {
+                glitchIntensity *= 0.75; 
+            }
+
+            // Map intensity to variables
+            root.style.setProperty('--shiver-x', `${((Math.random() - 0.5) * (glitchIntensity * 12)).toFixed(2)}px`);
+            root.style.setProperty('--shiver-y', `${((Math.random() - 0.5) * (glitchIntensity * 3)).toFixed(2)}px`);
+            root.style.setProperty('--rgb-split', (glitchIntensity * 5).toFixed(2));
+            root.style.setProperty('--flicker', (1 - (glitchIntensity * 0.2 * Math.random())).toFixed(3));
+            root.style.setProperty('--interference', (glitchIntensity * 0.06).toFixed(3));
+
+            requestAnimationFrame(renderLoop);
+        }
+        
+        requestAnimationFrame(renderLoop);
+
+        // 4. THE REVEAL (Forcing the user to 'pull' data)
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px 0px -15% 0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                    observer.unobserve(entry.target); 
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
 </body>
 </html>
